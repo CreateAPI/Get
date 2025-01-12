@@ -73,14 +73,14 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
     // MARK: - URLSessionDelegate
 
     func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?) {
-#if os(Linux)
+#if os(Linux) || os(Android)
         userSessionDelegate?.urlSession(session, didBecomeInvalidWithError: error)
 #else
         userSessionDelegate?.urlSession?(session, didBecomeInvalidWithError: error)
 #endif
     }
 
-#if !os(Linux)
+#if !os(Linux) && !os(Android)
     func urlSessionDidFinishEvents(forBackgroundURLSession session: URLSession) {
         if #available(macOS 11.0, *) {
             userSessionDelegate?.urlSessionDidFinishEvents?(forBackgroundURLSession: session)
@@ -95,7 +95,7 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         guard let handler = handlers[task] else { return assertionFailure() }
         handlers[task] = nil
-#if os(Linux)
+#if os(Linux) || os(Android)
         handler.delegate?.urlSession(session, task: task, didCompleteWithError: error)
         userTaskDelegate?.urlSession(session, task: task, didCompleteWithError: error)
 #else
@@ -126,7 +126,7 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
     func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
         let handler = handlers[task]
         handler?.metrics = metrics
-#if os(Linux)
+#if os(Linux) || os(Android)
         handler?.delegate?.urlSession(session, task: task, didFinishCollecting: metrics)
         userTaskDelegate?.urlSession(session, task: task, didFinishCollecting: metrics)
 #else
@@ -136,7 +136,7 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
     }
 
     func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
-#if os(Linux)
+#if os(Linux) || os(Android)
         handlers[task]?.delegate?.urlSession(session, task: task, willPerformHTTPRedirection: response, newRequest: request, completionHandler: completionHandler) ??
         userTaskDelegate?.urlSession(session, task: task, willPerformHTTPRedirection: response, newRequest: request, completionHandler: completionHandler) ??
         completionHandler(request)
@@ -147,7 +147,7 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
 #endif
     }
 
-#if !os(Linux)
+#if !os(Linux) && !os(Android)
     func urlSession(_ session: URLSession, taskIsWaitingForConnectivity task: URLSessionTask) {
         handlers[task]?.delegate?.urlSession?(session, taskIsWaitingForConnectivity: task)
         userTaskDelegate?.urlSession?(session, taskIsWaitingForConnectivity: task)
@@ -166,7 +166,7 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
 #endif
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
-#if os(Linux)
+#if os(Linux) || os(Android)
         handlers[task]?.delegate?.urlSession(session, task: task, didReceive: challenge, completionHandler: completionHandler) ??
         userTaskDelegate?.urlSession(session, task: task, didReceive: challenge, completionHandler: completionHandler) ??
         completionHandler(.performDefaultHandling, nil)
@@ -178,7 +178,7 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
     }
 
     func urlSession(_ session: URLSession, task: URLSessionTask, willBeginDelayedRequest request: URLRequest, completionHandler: @escaping (URLSession.DelayedRequestDisposition, URLRequest?) -> Void) {
-#if os(Linux)
+#if os(Linux) || os(Android)
         handlers[task]?.delegate?.urlSession(session, task: task, willBeginDelayedRequest: request, completionHandler: completionHandler) ??
         userTaskDelegate?.urlSession(session, task: task, willBeginDelayedRequest: request, completionHandler: completionHandler) ??
         completionHandler(.continueLoading, nil)
@@ -190,7 +190,7 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
     }
 	
 	func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
-#if os(Linux)
+#if os(Linux) || os(Android)
 		handlers[task]?.delegate?.urlSession(session, task: task, didSendBodyData: bytesSent, totalBytesSent: totalBytesSent, totalBytesExpectedToSend: totalBytesExpectedToSend) ??
 		userTaskDelegate?.urlSession(session, task: task, didSendBodyData: bytesSent, totalBytesSent: totalBytesSent, totalBytesExpectedToSend: totalBytesExpectedToSend)
 #else
@@ -202,7 +202,7 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
     // MARK: - URLSessionDataDelegate
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
-#if os(Linux)
+#if os(Linux) || os(Android)
         (handlers[dataTask] as? DataTaskHandler)?.dataDelegate?.urlSession(session, dataTask: dataTask, didReceive: response, completionHandler: completionHandler) ??
         userDataDelegate?.urlSession(session, dataTask: dataTask, didReceive: response, completionHandler: completionHandler) ??
         completionHandler(.allow)
@@ -215,7 +215,7 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
         guard let handler = handlers[dataTask] as? DataTaskHandler else { return }
-#if os(Linux)
+#if os(Linux) || os(Android)
         handler.dataDelegate?.urlSession(session, dataTask: dataTask, didReceive: data)
         userDataDelegate?.urlSession(session, dataTask: dataTask, didReceive: data)
 #else
@@ -228,7 +228,7 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
         handler.data!.append(data)
     }
 
-#if !os(Linux)
+#if !os(Linux) && !os(Android)
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didBecome downloadTask: URLSessionDownloadTask) {
         (handlers[dataTask] as? DataTaskHandler)?.dataDelegate?.urlSession?(session, dataTask: dataTask, didBecome: downloadTask)
         userDataDelegate?.urlSession?(session, dataTask: dataTask, didBecome: downloadTask)
@@ -241,7 +241,7 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
 #endif
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, willCacheResponse proposedResponse: CachedURLResponse, completionHandler: @escaping (CachedURLResponse?) -> Void) {
-#if os(Linux)
+#if os(Linux) || os(Android)
         (handlers[dataTask] as? DataTaskHandler)?.dataDelegate?.urlSession(session, dataTask: dataTask, willCacheResponse: proposedResponse, completionHandler: completionHandler) ??
         userDataDelegate?.urlSession(session, dataTask: dataTask, willCacheResponse: proposedResponse, completionHandler: completionHandler)
         completionHandler(proposedResponse)
@@ -266,7 +266,7 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
     }
 
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
-#if os(Linux)
+#if os(Linux) || os(Android)
         (handlers[downloadTask] as? DownloadTaskHandler)?.downloadDelegate?.urlSession(session, downloadTask: downloadTask, didWriteData: bytesWritten, totalBytesWritten: totalBytesWritten, totalBytesExpectedToWrite: totalBytesExpectedToWrite)
         userDownloadDelegate?.urlSession(session, downloadTask: downloadTask, didWriteData: bytesWritten, totalBytesWritten: totalBytesWritten, totalBytesExpectedToWrite: totalBytesExpectedToWrite)
 #else
@@ -276,7 +276,7 @@ final class DataLoader: NSObject, URLSessionDataDelegate, URLSessionDownloadDele
     }
 
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didResumeAtOffset fileOffset: Int64, expectedTotalBytes: Int64) {
-#if os(Linux)
+#if os(Linux) || os(Android)
         (handlers[downloadTask] as? DownloadTaskHandler)?.downloadDelegate?.urlSession(session, downloadTask: downloadTask, didResumeAtOffset: fileOffset, expectedTotalBytes: expectedTotalBytes)
         userDownloadDelegate?.urlSession(session, downloadTask: downloadTask, didResumeAtOffset: fileOffset, expectedTotalBytes: expectedTotalBytes)
 #else

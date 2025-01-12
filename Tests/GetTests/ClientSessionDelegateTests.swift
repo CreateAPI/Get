@@ -5,7 +5,7 @@
 import XCTest
 @testable import Get
 
-#if !os(Linux)
+#if !os(Linux) && !os(Android)
 final class APIClientSessionDelegateTests: XCTestCase {
     private let delegate = SessionDelegate()
     private var client: APIClient!

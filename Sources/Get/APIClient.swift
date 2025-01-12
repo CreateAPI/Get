@@ -155,7 +155,7 @@ public actor APIClient {
         }
     }
 
-#if !os(Linux)
+#if !os(Linux) && !os(Android)
 
     // MARK: Downloads
 
