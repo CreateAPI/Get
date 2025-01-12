@@ -49,7 +49,7 @@ final class ClientSendingRequestsTests: XCTestCase {
         XCTAssertEqual(response.data.count, 1321)
         XCTAssertEqual(response.originalRequest?.url, url)
         XCTAssertEqual(response.statusCode, 200)
-#if !os(Linux)
+#if !os(Linux) && !os(Android)
         let metrics = try XCTUnwrap(response.metrics)
         let transaction = try XCTUnwrap(metrics.transactionMetrics.first)
         XCTAssertEqual(transaction.request.url, URL(string: "https://api.github.com/user"))
@@ -306,7 +306,7 @@ final class ClientSendingRequestsTests: XCTestCase {
 
     // MARK: - Downloads
 
-#if !os(Linux)
+#if !os(Linux) && !os(Android)
     func testDownloads() async throws {
         // GIVEN
         let url = URL(string: "https://api.github.com/user")!
@@ -493,7 +493,7 @@ final class ClientSendingRequestsTests: XCTestCase {
         XCTAssertEqual(response.value.login, "kean")
     }
 
-#if !os(Linux) // This doesn't work on Linux
+#if !os(Linux) && !os(Android) // This doesn't work on Linux
     func testSetHTTPAdditionalHeaders() async throws {
         // GIVEN
         client = .mock {
